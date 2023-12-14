@@ -1,7 +1,9 @@
 from collections import defaultdict
 
 data = open("test.txt")
-#data = open("data.txt")
+start_symbol = "7"
+data = open("data.txt")
+start_symbol = "-"
 
 connections = defaultdict(lambda: [])
 symbols = dict()
@@ -12,7 +14,6 @@ row = 0
 for line in data:
     line = line.strip("\n")
     pipes = list(line)
-    print(pipes)
     col = 0
     for pipe in pipes:
         symbols[(row, col)] = pipe
@@ -46,41 +47,25 @@ while queue:
     neighbours = connections[node]
     [queue.append((neighbour, cost+1)) for neighbour in neighbours if not costmap[neighbour]]
 
-queue = []
+symbols[start] = start_symbol
 
+inside = 0
 for r in range(row):
-    queue.append((r, 0))
-    queue.append((r, col))
-
-non_inner = 0
-visited = set()
-while queue:
-    node = queue.pop(0)
-    if node not in loop and node not in visited:
-        visited.add(node)
-        non_inner += 1
-        neighbours = [(node[0]-1,node[1]), (node[0]+1,node[1]), (node[0],node[1]-1), (node[0],node[1]+1)]
-
-        if (node[0]-1, node[1]) in loop and symbols[(node[0]-1, node[1])]:
-            neighbours.append((node[0]-1, node[1]))
-        [queue.append(neighbour) for neighbour in neighbours if 0<=neighbour[0]<row and 0<neighbour[1]<col and symbols[neighbour] in ["7", "F", "J", "L"]]
-    elif node in loop and node not in visited:
-        visited.add(node)
-        [queue.append(neighbour) for neighbour in connections[node] if neighbour not in visited]
-
-
-
-inner = 0
-for r in range(row):
-    row = ""
+    prow = ""
+    pipes_passed = 0
+    F_passed = 0
+    L_passed = 0
     for c in range(col):
-        if (r,c) in visited and (r,c) not in loop:
-            row += "o"
-        elif (r,c) in loop:
-            row += "-"
+        if (r,c) in loop:
+            symbol = symbols[(r,c)]
+            prow += symbol
+            if symbol in set(["|", "F", "7"]):
+                pipes_passed += 1
+        elif sum([pipes_passed,F_passed, L_passed]) % 2 == 1:
+            inside += 1
+            prow += "+"
         else:
-            row += "+"
-            inner += 1
-    print(row)
+            prow += "."
+    print(prow)
 
-print(inner)
+print(inside)
